@@ -25,6 +25,6 @@ if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
 
 	const promise = run(command);
 	if (command.forceExit) {
-		promise.then(() => process.exit());
+		promise.then(() => process.stdout.end(() => process.exit()));
 	}
 }
