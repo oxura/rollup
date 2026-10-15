@@ -758,7 +758,9 @@ function addChunkDependenciesAndGetExternalSideEffectAtoms(
 		const { dependencies, modules } = chunk;
 		for (const module of modules) {
 			for (const dependency of module.getDependenciesToBeIncluded()) {
-				if (dependency instanceof ExternalModule || !chunkByModule.has(dependency)) {
+				const dependencyChunk =
+					dependency instanceof ExternalModule ? undefined : chunkByModule.get(dependency);
+				if (!dependencyChunk) {
 					if (dependency.info.moduleSideEffects) {
 						const signature = getOrCreate(signatureByDependency, dependency, () => {
 							const signature = nextAvailableAtomMask;
@@ -769,12 +771,9 @@ function addChunkDependenciesAndGetExternalSideEffectAtoms(
 						chunk.containedAtoms |= signature;
 						chunk.correlatedAtoms |= signature;
 					}
-				} else {
-					const dependencyChunk = chunkByModule.get(dependency);
-					if (dependencyChunk && dependencyChunk !== chunk) {
-						dependencies.add(dependencyChunk);
-						dependencyChunk.dependentChunks.add(chunk);
-					}
+				} else if (dependencyChunk !== chunk) {
+					dependencies.add(dependencyChunk);
+					dependencyChunk.dependentChunks.add(chunk);
 				}
 			}
 		}
