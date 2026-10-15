@@ -752,15 +752,15 @@ function addChunkDependenciesAndGetExternalSideEffectAtoms(
 	chunkByModule: Map<Module, ChunkDescription>,
 	nextAvailableAtomMask: bigint
 ): bigint {
-	const signatureByExternalModule = new Map<ExternalModule, bigint>();
+	const signatureByDependency = new Map<ExternalModule | Module, bigint>();
 	let externalSideEffectAtoms = 0n;
 	for (const chunk of chunks) {
 		const { dependencies, modules } = chunk;
 		for (const module of modules) {
 			for (const dependency of module.getDependenciesToBeIncluded()) {
-				if (dependency instanceof ExternalModule) {
+				if (dependency instanceof ExternalModule || !chunkByModule.has(dependency)) {
 					if (dependency.info.moduleSideEffects) {
-						const signature = getOrCreate(signatureByExternalModule, dependency, () => {
+						const signature = getOrCreate(signatureByDependency, dependency, () => {
 							const signature = nextAvailableAtomMask;
 							nextAvailableAtomMask <<= 1n;
 							externalSideEffectAtoms |= signature;
