@@ -491,6 +491,8 @@ There is also some advanced syntax available for more complex filters.
 
 Force exit the process when done. In some cases plugins or their dependencies might not cleanup properly and prevent the CLI process from exiting. The root cause can be hard to diagnose and this flag provides an escape hatch until it can be identified and resolved.
 
+Pending standard output is flushed before exiting, so piping generated code to another process does not truncate it.
+
 Note that this might break certain workflows and won't always work properly.
 
 ### `-h`/`--help`
