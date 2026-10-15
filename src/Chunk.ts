@@ -237,8 +237,14 @@ export default class Chunk {
 
 		for (const module of orderedModules) {
 			chunkByModule.set(module, this);
-			if (module.namespace.included && !outputOptions.preserveModules) {
+			if (
+				module.namespace.included &&
+				(!outputOptions.preserveModules || module.info.syntheticNamedExports)
+			) {
 				includedNamespaces.add(module);
+				if (outputOptions.preserveModules) {
+					this.exports.add(module.namespace);
+				}
 			}
 			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
@@ -666,7 +672,11 @@ export default class Chunk {
 	}
 
 	getVariableExportName(variable: Variable): string {
-		if (this.outputOptions.preserveModules && variable instanceof NamespaceVariable) {
+		if (
+			this.outputOptions.preserveModules &&
+			variable instanceof NamespaceVariable &&
+			!variable.module.info.syntheticNamedExports
+		) {
 			return '*';
 		}
 		return this.exportNamesByVariable.get(variable)![0];
@@ -859,9 +869,12 @@ export default class Chunk {
 			const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
 			const importedVariable = isSynthetic ? exportedVariable.getBaseVariable() : exportedVariable;
 			this.checkCircularDependencyImport(importedVariable, module);
-			// When preserving modules, we do not create namespace objects but directly
-			// use the actual namespaces, which would be broken by this logic.
-			if (!(importedVariable instanceof NamespaceVariable && this.outputOptions.preserveModules)) {
+			// Native namespaces cannot represent synthetic exports.
+			if (!(
+				importedVariable instanceof NamespaceVariable &&
+				this.outputOptions.preserveModules &&
+				!importedVariable.module.info.syntheticNamedExports
+			)) {
 				const exportingModule = importedVariable.module;
 				if (exportingModule instanceof Module) {
 					const chunk = this.chunkByModule.get(exportingModule);
@@ -1553,9 +1566,8 @@ export default class Chunk {
 
 	private setUpChunkImportsAndExportsForModule(module: Module): void {
 		const moduleImports = new Set(module.includedImports);
-		// when we are not preserving modules, we need to make all namespace variables available for
-		// rendering the namespace object
-		if (!this.outputOptions.preserveModules && this.includedNamespaces.has(module)) {
+		// Make all namespace variables available for rendering the namespace object.
+		if (this.includedNamespaces.has(module)) {
 			for (const variable of module.getExportedVariablesByName().values()) {
 				if (variable.included) {
 					moduleImports.add(variable);
@@ -1574,9 +1586,12 @@ export default class Chunk {
 				this.imports.add(variable);
 				if (variable.module instanceof Module) {
 					this.checkCircularDependencyImport(variable, module);
-					// When preserving modules, we do not create namespace objects but directly
-					// use the actual namespaces, which would be broken by this logic.
-					if (!(variable instanceof NamespaceVariable && this.outputOptions.preserveModules)) {
+					// Native namespaces cannot represent synthetic exports.
+					if (!(
+						variable instanceof NamespaceVariable &&
+						this.outputOptions.preserveModules &&
+						!variable.module.info.syntheticNamedExports
+					)) {
 						chunk!.exports.add(variable);
 					}
 				}
