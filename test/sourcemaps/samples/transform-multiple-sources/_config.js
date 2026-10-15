@@ -30,7 +30,11 @@ module.exports = defineTest({
 				async transform(code) {
 					const { default: MagicString } = await import('magic-string');
 					const transformed = new MagicString(code).prepend('// transformed\n');
-					return { code: transformed.toString(), map: transformed.generateMap({ hires: true }) };
+					const { mappings, names, version } = transformed.generateMap({ hires: true });
+					return {
+						code: transformed.toString(),
+						map: JSON.stringify({ mappings, names, version })
+					};
 				}
 			}
 		]

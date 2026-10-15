@@ -159,7 +159,7 @@ class Link {
 function getLinkMap(log: LogHandler, id?: string) {
 	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing): Link {
 		if (!map.missing) {
-			if (id && map.sources.length > 1) {
+			if (id && map.sources && map.sources.length > 1) {
 				const directory = dirname(id);
 				const sourcesContent = map.sourcesContent || [];
 				return new Link(
