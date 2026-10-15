@@ -2242,6 +2242,8 @@ console.log(__synthetic);
 
 When used as an entry point, only explicit exports will be exposed. The synthetic fallback export, i.e. `__synthetic` in the example, will not be exposed for string values of `syntheticNamedExports`. However, if the value is `true`, the default export will be exposed. This is the only notable difference between `syntheticNamedExports: true` and `syntheticNamedExports: 'default'`.
 
+Namespace imports include synthetic properties even when [`output.preserveModules`](../configuration-options/index.md#output-preservemodules) is enabled.
+
 ## Import attributes
 
 The ECMAScript standard allows [import attributes](https://github.com/tc39/proposal-import-attributes) to be specified on imports to customize how a module is loaded. For example:
