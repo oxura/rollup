@@ -2464,6 +2464,8 @@ Whether to apply tree-shaking and to fine-tune the tree-shaking process. Setting
 - `"safest"` tries to be as spec compliant as possible while still providing some basic tree-shaking capabilities.
 - `true` is equivalent to not specifying the option and will always choose the default value (see below).
 
+Initialized local constants can make branches of returned conditional (`?:`) and logical (`&&`, `||`) expressions unreachable. Rollup removes those branches and their otherwise unused imports without treating an access before a lexical declaration as an initialized value.
+
 If you discover a bug caused by the tree-shaking algorithm, please file an issue! Setting this option to an object implies tree-shaking is enabled and grants the following additional options:
 
 #### treeshake.annotations

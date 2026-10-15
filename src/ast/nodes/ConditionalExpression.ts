@@ -77,7 +77,8 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		const usedBranch = this.getUsedBranch();
+		// Deoptimization can run before declarations have been reached.
+		const usedBranch = this.usedBranch;
 		if (usedBranch) {
 			usedBranch.deoptimizePath(path);
 		} else {

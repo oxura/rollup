@@ -100,7 +100,8 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		const usedBranch = this.getUsedBranch();
+		// Deoptimization can run before declarations have been reached.
+		const usedBranch = this.usedBranch;
 		if (usedBranch) {
 			usedBranch.deoptimizePath(path);
 		} else {
