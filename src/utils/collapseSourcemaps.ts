@@ -156,9 +156,22 @@ class Link {
 	}
 }
 
-function getLinkMap(log: LogHandler) {
+function getLinkMap(log: LogHandler, id?: string) {
 	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing): Link {
 		if (!map.missing) {
+			if (id && map.sources.length > 1) {
+				const directory = dirname(id);
+				const sourcesContent = map.sourcesContent || [];
+				return new Link(
+					map,
+					map.sources.map((filename, index) => {
+						const resolvedFilename = resolve(directory, map.sourceRoot || '.', filename);
+						return resolvedFilename === id
+							? source
+							: new Source(resolvedFilename, sourcesContent[index]);
+					})
+				);
+			}
 			return new Link(map, [source]);
 		}
 
@@ -179,7 +192,7 @@ function getCollapsedSourcemap(
 	originalCode: string,
 	originalSourcemap: ExistingDecodedSourceMap | null,
 	sourcemapChain: readonly DecodedSourceMapOrMissing[],
-	linkMap: (source: Source | Link, map: DecodedSourceMapOrMissing) => Link
+	log: LogHandler
 ): Source | Link {
 	let source: Source | Link;
 
@@ -196,7 +209,7 @@ function getCollapsedSourcemap(
 	} else {
 		source = new Source(id, originalCode);
 	}
-	return sourcemapChain.reduce(linkMap, source);
+	return sourcemapChain.reduce(getLinkMap(log, id), source);
 }
 
 export function collapseSourcemaps(
@@ -216,7 +229,7 @@ export function collapseSourcemaps(
 				module.originalCode,
 				module.originalSourcemap,
 				module.sourcemapChain,
-				linkMap
+				log
 			)
 		);
 
@@ -259,7 +272,7 @@ export function collapseSourcemap(
 		originalCode,
 		originalSourcemap,
 		sourcemapChain,
-		getLinkMap(log)
+		log
 	) as Link;
 	const map = source.traceMappings();
 	return decodedSourcemap({ version: 3, ...map });
